@@ -1,0 +1,5 @@
+Dxgkrnl function list:
+   https://github.com/hfiref0x/NtCall64/blob/master/Source/NtCall64/tables.h
+
+WinDef API list:
+   https://doxygen.reactos.org/d2/d9f/ntoskrnl_2ps_2process_8c_source.html
