@@ -32,5 +32,58 @@ bool nullhook::call_kernel_function(void* kernel_function_address)
 NTSTATUS nullhook::hook_handler(PVOID called_param)
 {	
 	//bool pass = (called_param == NULL);
+	JCH_Options* instruction = (JCH_Options*)called_param;
+
+	if (instruction->req_base != FALSE)
+	{
+		ANSI_STRING AS;
+		UNICODE_STRING ModuleName;
+
+		RtlInitAnsiString(&AS, instruction->module_name);
+		RtlAnsiStringToUnicodeString(&ModuleName, &AS,TRUE);
+
+		PEPROCESS process;
+		PsLookupProcessByProcessId((HANDLE)instruction->pid, &process);
+
+		ULONG64 base_address64 = NULL;
+		base_address64 = get_module_base_x64(process, ModuleName);
+		instruction->base_address = base_address64;
+		RtlFreeUnicodeString(&ModuleName);
+
+	}
+
+	if (instruction->write != FALSE)
+	{
+		if (instruction->address < 0x7FFFFFFFFFFF && instruction->address > 0)
+		{
+			//allocate pool is detected EAC/BE check for the pool and uploads to the serve analyze and bypass this
+			PVOID kernelBuff = ExAllocatePool(NonPagedPool, instruction->size);
+
+			if (!kernelBuff)
+			{
+				return STATUS_UNSUCCESSFUL;
+
+			}
+
+			if (!memcpy(kernelBuff, instruction->buffer_address, instruction->size))
+			{
+				return STATUS_UNSUCCESSFUL;
+			}
+
+			PEPROCESS process;
+			PsLookupProcessByProcessId((HANDLE)instruction->pid, &process);
+			write_kernel_memory((HANDLE)instruction->pid, instruction->address, kernelBuff, instruction->size);
+			ExFreePool(kernelBuff);
+		}
+	}
+
+	if (instruction->read != FALSE)
+	{
+		if (instruction->address < 0x7FFFFFFFFFFF && instruction->address > 0)
+		{
+			read_kernel_memory((HANDLE)instruction->pid, instruction->address, instruction->output, instruction->size);
+		}
+	}
+
 	return STATUS_SUCCESS;
 }

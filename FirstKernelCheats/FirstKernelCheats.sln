@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.32002.261
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FirstKernelCheats", "FirstKernelCheats\FirstKernelCheats.vcxproj", "{F8A23DFB-CE07-4B18-B2EC-9A36710D5465}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UMComponent", "UMComponent\UMComponent.vcxproj", "{8699687E-770E-4BE0-85BB-FF9DF108960E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -41,6 +43,18 @@ Global
 		{F8A23DFB-CE07-4B18-B2EC-9A36710D5465}.Release|x86.ActiveCfg = Release|Win32
 		{F8A23DFB-CE07-4B18-B2EC-9A36710D5465}.Release|x86.Build.0 = Release|Win32
 		{F8A23DFB-CE07-4B18-B2EC-9A36710D5465}.Release|x86.Deploy.0 = Release|Win32
+		{8699687E-770E-4BE0-85BB-FF9DF108960E}.Debug|ARM.ActiveCfg = Debug|Win32
+		{8699687E-770E-4BE0-85BB-FF9DF108960E}.Debug|ARM64.ActiveCfg = Debug|Win32
+		{8699687E-770E-4BE0-85BB-FF9DF108960E}.Debug|x64.ActiveCfg = Debug|x64
+		{8699687E-770E-4BE0-85BB-FF9DF108960E}.Debug|x64.Build.0 = Debug|x64
+		{8699687E-770E-4BE0-85BB-FF9DF108960E}.Debug|x86.ActiveCfg = Debug|Win32
+		{8699687E-770E-4BE0-85BB-FF9DF108960E}.Debug|x86.Build.0 = Debug|Win32
+		{8699687E-770E-4BE0-85BB-FF9DF108960E}.Release|ARM.ActiveCfg = Release|Win32
+		{8699687E-770E-4BE0-85BB-FF9DF108960E}.Release|ARM64.ActiveCfg = Release|Win32
+		{8699687E-770E-4BE0-85BB-FF9DF108960E}.Release|x64.ActiveCfg = Release|x64
+		{8699687E-770E-4BE0-85BB-FF9DF108960E}.Release|x64.Build.0 = Release|x64
+		{8699687E-770E-4BE0-85BB-FF9DF108960E}.Release|x86.ActiveCfg = Release|Win32
+		{8699687E-770E-4BE0-85BB-FF9DF108960E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
