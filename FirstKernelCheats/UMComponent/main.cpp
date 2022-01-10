@@ -18,7 +18,8 @@ typedef struct _JCH_Options_
 	void* output;
 	const char* module_name;
 	ULONG64 base_address;
-
+	BOOLEAN IsProc64bit;
+	ULONG base_address32;
 }JCH_Options;
 
 uintptr_t base_address = 0;
@@ -75,7 +76,7 @@ std::uint32_t get_process_id(std::string_view process_name)
 	return NULL; 
 }
 
-static ULONG64 get_module_base_address(const char* module_name)
+static ULONG64 get_module_base_address(const char* module_name, BOOLEAN IsProc64Bit)
 {
 	JCH_Options instruction = { 0 };
 	instruction.pid = process_id;
@@ -83,6 +84,7 @@ static ULONG64 get_module_base_address(const char* module_name)
 	instruction.read = FALSE;
 	instruction.write = FALSE;
 	instruction.module_name = module_name;
+	instruction.IsProc64bit = IsProc64Bit;
 	call_hook(&instruction);
 
 	ULONG64 base = NULL;
@@ -133,7 +135,7 @@ bool write(UINT_PTR write_address, const S& value)
 
 int main()
 {
-	base_address = get_module_base_address("RainbowSix.exe");
+	base_address = get_module_base_address("RainbowSix.exe", TRUE);
 
 	if (!base_address)
 	{

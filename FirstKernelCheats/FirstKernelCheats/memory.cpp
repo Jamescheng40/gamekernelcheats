@@ -1,4 +1,6 @@
 #include "memory.h"
+#include "utility.h"
+#include <string>
 
 PVOID get_system_module_base(const char* module_name)
 {
@@ -81,6 +83,82 @@ bool write_to_read_only_memory(void* address, void* buffer, size_t size)
 	return true;
 }
 
+//ULONG get_module_base_x32(PEPROCESS proc, UNICODE_STRING module_name, HANDLE pid)
+//{
+//	BOOLEAN iswow64 = (PsGetProcessWow64Process(proc) != NULL) ? TRUE : FALSE;
+//
+//	if (iswow64 == FALSE)
+//	{
+//		return 0;
+//	}
+//
+//	PVOID peb_address = PsGetProcessWow64Process(proc);
+//
+//	//parameter for passing to the read process memory
+//	NTSTATUS status;
+//	PEB32 peb_process = { 0 };
+//	SIZE_T s_read = 0;
+//	ULONG outdllbase = 0;
+//
+//
+//	//ReadProcessMemory(pid, (ULONG64)pebPtr, (ULONG64)&peb, sizeof(PEB32));
+//	status = ReadProcessMemory(pid, peb_address, &peb_process, sizeof(PEB32), &s_read);
+//
+//	if (!NT_SUCCESS(status))
+//		return status;
+//
+//	PEB_LDR_DATA32 peb_ldr_data = { 0 };
+//	status = ReadProcessMemory(pid, (PVOID)peb_process.LdrData, &peb_ldr_data, sizeof(PEB_LDR_DATA32), &s_read);
+//
+//	if (!NT_SUCCESS(status))
+//		return status;
+//
+//	LIST_ENTRY32* ldr_list_head = (LIST_ENTRY32*)peb_ldr_data.InLoadOrderModuleList.Flink;
+//	LIST_ENTRY32* ldr_current_node = (LIST_ENTRY32*)peb_ldr_data.InLoadOrderModuleList.Flink;
+//	
+//	//PEB_LDR_DATA32 is for dll only according to https://www.geoffchappell.com/studies/windows/km/ntoskrnl/inc/api/ntldr/ldr_data_table_entry.html. Not sure about exe
+//	while (ldr_list_head != ldr_current_node)
+//	{
+//		LDR_DATA_TABLE_ENTRY32 lst_entry = { 0 };
+//		status = ReadProcessMemory(pid, (PVOID)ldr_current_node, &lst_entry, sizeof(LDR_DATA_TABLE_ENTRY32), &s_read);
+//		if (!NT_SUCCESS(status))
+//			return status;
+//
+//		ldr_current_node = (LIST_ENTRY32*)lst_entry.InLoadOrderLinks.Flink;
+//		if (lst_entry.BaseDllName.Length > 0)
+//		{
+//			WCHAR sz_base_dll_name[MAX_PATH] = { 0 };
+//			status = ReadProcessMemory(pid, (PVOID)lst_entry.BaseDllName.Buffer, &sz_base_dll_name, lst_entry.BaseDllName.Length, &s_read);
+//
+//			if (!NT_SUCCESS(status))
+//				return status;
+//
+//			//ANSI_STRING AS;
+//			//UNICODE_STRING ModuleName;
+//
+//			////RtlInitAnsiString(&AS, instruction->module_name);
+//
+//			//RtlUnicodeStringToAnsiString(&AS, &module_name, TRUE);
+//
+//			//const char* test = (char *)AS.Buffer;
+//			/////(&ModuleName, &AS, TRUE);
+//
+//			if (crt_strcmp(sz_base_dll_name, module_name, true))
+//			{
+//				if (lst_entry.DllBase != 0 && lst_entry.SizeOfImage != 0)
+//				{
+//					outdllbase = (ULONG)lst_entry.DllBase;
+//
+//					break;
+//				}
+//			}
+//		}
+//
+//	}
+//
+//	return outdllbase;
+//}
+
 ULONG64 get_module_base_x64(PEPROCESS proc, UNICODE_STRING module_name)
 {
 
@@ -96,7 +174,8 @@ ULONG64 get_module_base_x64(PEPROCESS proc, UNICODE_STRING module_name)
 	KeStackAttachProcess(proc, &state);
 
 	PPEB_LDR_DATA pLdr = (PPEB_LDR_DATA)pPeb->Ldr;
-
+	//ReadProcessMemory(pid, ldrdata.InLoadOrderModuleList.Flink,
+	//	(ULONG64)&currEntry, sizeof(LDR_DATA_TABLE_ENTRY32));
 	if (!pLdr)
 	{
 		KeUnstackDetachProcess(&state);

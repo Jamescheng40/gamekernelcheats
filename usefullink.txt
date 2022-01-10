@@ -3,3 +3,39 @@ Dxgkrnl function list:
 
 WinDef API list:
    https://doxygen.reactos.org/d2/d9f/ntoskrnl_2ps_2process_8c_source.html
+
+explaining psgetprocesspeb and psgetprocessWow64Process
+
+https://blog.csdn.net/qq_37232329/article/details/118635811
+https://www.twblogs.net/a/5c31d063bd9eee35b3a4f239
+https://docs.rs/ntapi/0.3.4/ntapi/ntwow64/struct.PEB_LDR_DATA32.html
+https://processhacker.sourceforge.io/doc/struct___p_e_b___l_d_r___d_a_t_a32.html
+http://undocumented.ntinternals.net/index.html?page=UserMode%2FStructures%2FLDR_MODULE.html
+
+documentation words
+https://www.geoffchappell.com/studies/windows/km/ntoskrnl/inc/api/ntldr/ldr_data_table_entry.htm
+
+typedef struct _JCH_Options_
+{
+	void* buffer_address;
+	UINT_PTR address;
+	ULONGLONG size;
+	ULONG pid;
+	BOOLEAN write;
+	BOOLEAN read;
+	BOOLEAN req_base;
+	void* output;
+	const char* module_name;
+	ULONG64 base_address;
+	BOOLEAN IsProc64bit;
+}JCH_Options;
+
+
+typedef int myinteger;
+typedef char *mystring;
+typedef void (*myfunc)();
+using them like
+
+myinteger i;   // is equivalent to    int i;
+mystring s;    // is the same as      char *s;
+myfunc f;      // compile equally as  void (*f)();

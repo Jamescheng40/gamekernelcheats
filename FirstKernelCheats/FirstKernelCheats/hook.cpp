@@ -34,7 +34,7 @@ NTSTATUS nullhook::hook_handler(PVOID called_param)
 	//bool pass = (called_param == NULL);
 	JCH_Options* instruction = (JCH_Options*)called_param;
 
-	if (instruction->req_base != FALSE)
+	if (instruction->req_base != FALSE && instruction->IsProc64bit == TRUE)
 	{
 		ANSI_STRING AS;
 		UNICODE_STRING ModuleName;
@@ -52,7 +52,26 @@ NTSTATUS nullhook::hook_handler(PVOID called_param)
 
 	}
 
-	if (instruction->write != FALSE)
+	//if (instruction->req_base != FALSE && instruction->IsProc64bit == FALSE)
+	//{
+	//	ANSI_STRING AS;
+	//	UNICODE_STRING ModuleName;
+
+	//	RtlInitAnsiString(&AS, instruction->module_name);
+	//	RtlAnsiStringToUnicodeString(&ModuleName, &AS, TRUE);
+
+	//	PEPROCESS process;
+	//	PsLookupProcessByProcessId((HANDLE)instruction->pid, &process);
+
+	//	ULONG base_address32 = NULL;
+	//	base_address32 = get_module_base_x32(process, ModuleName, (HANDLE)instruction->pid);
+	//	instruction->base_address32 = base_address32;
+	//	RtlFreeUnicodeString(&ModuleName);
+
+
+	//}
+
+	if (instruction->write != FALSE && instruction->IsProc64bit == TRUE)
 	{
 		if (instruction->address < 0x7FFFFFFFFFFF && instruction->address > 0)
 		{
@@ -77,7 +96,7 @@ NTSTATUS nullhook::hook_handler(PVOID called_param)
 		}
 	}
 
-	if (instruction->read != FALSE)
+	if (instruction->read != FALSE && instruction->IsProc64bit == TRUE)
 	{
 		if (instruction->address < 0x7FFFFFFFFFFF && instruction->address > 0)
 		{

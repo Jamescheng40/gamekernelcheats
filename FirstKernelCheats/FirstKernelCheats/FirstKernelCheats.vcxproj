@@ -172,6 +172,7 @@
   <ItemGroup>
     <ClInclude Include="hook.h" />
     <ClInclude Include="memory.h" />
+    <ClInclude Include="utility.h" />
     <ClInclude Include="WInDefRef.h" />
   </ItemGroup>
   <ItemGroup>
