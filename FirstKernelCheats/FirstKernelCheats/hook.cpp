@@ -52,24 +52,24 @@ NTSTATUS nullhook::hook_handler(PVOID called_param)
 
 	}
 
-	//if (instruction->req_base != FALSE && instruction->IsProc64bit == FALSE)
-	//{
-	//	ANSI_STRING AS;
-	//	UNICODE_STRING ModuleName;
+	if (instruction->req_base != FALSE && instruction->IsProc64bit == FALSE)
+	{
+		ANSI_STRING AS;
+		UNICODE_STRING ModuleName;
 
-	//	RtlInitAnsiString(&AS, instruction->module_name);
-	//	RtlAnsiStringToUnicodeString(&ModuleName, &AS, TRUE);
+		RtlInitAnsiString(&AS, instruction->module_name);
+		RtlAnsiStringToUnicodeString(&ModuleName, &AS, TRUE);
 
-	//	PEPROCESS process;
-	//	PsLookupProcessByProcessId((HANDLE)instruction->pid, &process);
+		PEPROCESS process;
+		PsLookupProcessByProcessId((HANDLE)instruction->pid, &process);
 
-	//	ULONG base_address32 = NULL;
-	//	base_address32 = get_module_base_x32(process, ModuleName, (HANDLE)instruction->pid);
-	//	instruction->base_address32 = base_address32;
-	//	RtlFreeUnicodeString(&ModuleName);
+		ULONG base_address32 = NULL;
+		base_address32 = get_module_base_x32(process, ModuleName, (HANDLE)instruction->pid);
+		instruction->base_address32 = base_address32;
+		RtlFreeUnicodeString(&ModuleName);
 
 
-	//}
+	}
 
 	if (instruction->write != FALSE && instruction->IsProc64bit == TRUE)
 	{
