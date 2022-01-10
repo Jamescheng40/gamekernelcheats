@@ -1,4 +1,5 @@
 FirstKernelCheats/.vs/
 *.log
 *.recipe
-*.inf
+FirstKernelCheats/FirstKernelCheats/Release/*
+FirstKernelCheats/Release/*
