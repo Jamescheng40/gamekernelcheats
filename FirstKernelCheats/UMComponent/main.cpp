@@ -135,7 +135,7 @@ bool write(UINT_PTR write_address, const S& value)
 
 int main()
 {
-	base_address = get_module_base_address("RainbowSix.exe", TRUE);
+	base_address = get_module_base_address("client.dll", TRUE);
 
 	if (!base_address)
 	{

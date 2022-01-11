@@ -7,6 +7,10 @@
 #pragma comment(lib, "ntoskrnl.lib")
 
 #define WOW64_POINTER(Type) ULONG
+
+#define GDI_HANDLE_BUFFER_SIZE32   34
+typedef ULONG 	GDI_HANDLE_BUFFER32[GDI_HANDLE_BUFFER_SIZE32];
+#define FLS_MAXIMUM_AVAILABLE 128
 //entry 32 req start symbols
  typedef enum _LDR_DLL_LOAD_REASON
  {
@@ -112,25 +116,165 @@ typedef struct _RTL_BALANCED_NODE32
 // entry 32 end
 
 /* Abbreviated 32-bit PEB from dbghelp_private.h */
-typedef struct _PEB32
-{
-	BOOLEAN InheritedAddressSpace;
-	BOOLEAN ReadImageFileExecOptions;
-	BOOLEAN BeingDebugged;
-	BOOLEAN SpareBool;
-	DWORD   Mutant;
-	DWORD   ImageBaseAddress;
-	DWORD   LdrData;
-	DWORD   ProcessParameters;
-	DWORD   SubSystemData;
-	DWORD   ProcessHeap;
-	DWORD   FastPebLock;
-	DWORD   FastPebLockRoutine;
-	DWORD   FastPebUnlockRoutine;
-	ULONG   EnvironmentUpdateCount;
-	DWORD   KernelCallbackTable;
-	ULONG   Reserved[2];
-} PEB32;
+//typedef struct _PEB32
+//{
+//	BOOLEAN InheritedAddressSpace;
+//	BOOLEAN ReadImageFileExecOptions;
+//	BOOLEAN BeingDebugged;
+//	BOOLEAN SpareBool;
+//	DWORD   Mutant;
+//	DWORD   ImageBaseAddress;
+//	DWORD   LdrData;
+//	DWORD   ProcessParameters;
+//	DWORD   SubSystemData;
+//	DWORD   ProcessHeap;
+//	DWORD   FastPebLock;
+//	DWORD   FastPebLockRoutine;
+//	DWORD   FastPebUnlockRoutine;
+//	ULONG   EnvironmentUpdateCount;
+//	DWORD   KernelCallbackTable;
+//	ULONG   Reserved[2];
+//} PEB32;
+
+
+ //peb32 full version 32 bit
+ typedef struct _PEB32
+ {
+	     BOOLEAN InheritedAddressSpace;
+	     BOOLEAN ReadImageFileExecOptions;
+	     BOOLEAN BeingDebugged;
+	     union
+		     {
+		         BOOLEAN BitField;
+		         struct
+			         {
+			             BOOLEAN ImageUsesLargePages : 1;
+			             BOOLEAN IsProtectedProcess : 1;
+			             BOOLEAN IsLegacyProcess : 1;
+			             BOOLEAN IsImageDynamicallyRelocated : 1;
+			             BOOLEAN SkipPatchingUser32Forwarders : 1;
+			             BOOLEAN IsPackagedProcess : 1;
+			             BOOLEAN IsAppContainer : 1;
+			             BOOLEAN SpareBits : 1;
+			         };
+		     };
+	     WOW64_POINTER(HANDLE) Mutant;
+	
+		     WOW64_POINTER(PVOID) ImageBaseAddress;
+	     WOW64_POINTER(PPEB_LDR_DATA) Ldr;
+	     WOW64_POINTER(PRTL_USER_PROCESS_PARAMETERS) ProcessParameters;
+	     WOW64_POINTER(PVOID) SubSystemData;
+	     WOW64_POINTER(PVOID) ProcessHeap;
+	     WOW64_POINTER(PRTL_CRITICAL_SECTION) FastPebLock;
+	     WOW64_POINTER(PVOID) AtlThunkSListPtr;
+	     WOW64_POINTER(PVOID) IFEOKey;
+	     union
+		     {
+		         ULONG CrossProcessFlags;
+		         struct
+			         {
+			             ULONG ProcessInJob : 1;
+			             ULONG ProcessInitializing : 1;
+			             ULONG ProcessUsingVEH : 1;
+			             ULONG ProcessUsingVCH : 1;
+			             ULONG ProcessUsingFTH : 1;
+			             ULONG ReservedBits0 : 27;
+			         };
+		         ULONG EnvironmentUpdateCount;
+		     };
+	     union
+		     {
+		         WOW64_POINTER(PVOID) KernelCallbackTable;
+		         WOW64_POINTER(PVOID) UserSharedInfoPtr;
+		     };
+	     ULONG SystemReserved[1];
+	     ULONG AtlThunkSListPtr32;
+	     WOW64_POINTER(PVOID) ApiSetMap;
+	     ULONG TlsExpansionCounter;
+	     WOW64_POINTER(PVOID) TlsBitmap;
+	     ULONG TlsBitmapBits[2];
+	     WOW64_POINTER(PVOID) ReadOnlySharedMemoryBase;
+	     WOW64_POINTER(PVOID) HotpatchInformation;
+	     WOW64_POINTER(PVOID*) ReadOnlyStaticServerData;
+	     WOW64_POINTER(PVOID) AnsiCodePageData;
+	     WOW64_POINTER(PVOID) OemCodePageData;
+	     WOW64_POINTER(PVOID) UnicodeCaseTableData;
+	
+		     ULONG NumberOfProcessors;
+	     ULONG NtGlobalFlag;
+	
+		     LARGE_INTEGER CriticalSectionTimeout;
+	     WOW64_POINTER(SIZE_T) HeapSegmentReserve;
+	     WOW64_POINTER(SIZE_T) HeapSegmentCommit;
+	     WOW64_POINTER(SIZE_T) HeapDeCommitTotalFreeThreshold;
+	     WOW64_POINTER(SIZE_T) HeapDeCommitFreeBlockThreshold;
+	
+		     ULONG NumberOfHeaps;
+	     ULONG MaximumNumberOfHeaps;
+	     WOW64_POINTER(PVOID*) ProcessHeaps;
+	
+		     WOW64_POINTER(PVOID) GdiSharedHandleTable;
+	     WOW64_POINTER(PVOID) ProcessStarterHelper;
+	     ULONG GdiDCAttributeList;
+	
+		     WOW64_POINTER(PRTL_CRITICAL_SECTION) LoaderLock;
+	
+		     ULONG OSMajorVersion;
+	     ULONG OSMinorVersion;
+	     USHORT OSBuildNumber;
+	     USHORT OSCSDVersion;
+	     ULONG OSPlatformId;
+	     ULONG ImageSubsystem;
+	     ULONG ImageSubsystemMajorVersion;
+	     ULONG ImageSubsystemMinorVersion;
+	     WOW64_POINTER(ULONG_PTR) ImageProcessAffinityMask;
+	     GDI_HANDLE_BUFFER32 GdiHandleBuffer;
+	     WOW64_POINTER(PVOID) PostProcessInitRoutine;
+	
+		     WOW64_POINTER(PVOID) TlsExpansionBitmap;
+	     ULONG TlsExpansionBitmapBits[32];
+	
+		     ULONG SessionId;
+	
+		     ULARGE_INTEGER AppCompatFlags;
+	     ULARGE_INTEGER AppCompatFlagsUser;
+	     WOW64_POINTER(PVOID) pShimData;
+	     WOW64_POINTER(PVOID) AppCompatInfo;
+	
+		     UNICODE_STRING32 CSDVersion;
+	
+		     WOW64_POINTER(PVOID) ActivationContextData;
+	     WOW64_POINTER(PVOID) ProcessAssemblyStorageMap;
+	     WOW64_POINTER(PVOID) SystemDefaultActivationContextData;
+	     WOW64_POINTER(PVOID) SystemAssemblyStorageMap;
+	
+		     WOW64_POINTER(SIZE_T) MinimumStackCommit;
+
+		     WOW64_POINTER(PVOID*) FlsCallback;
+	     LIST_ENTRY32 FlsListHead;
+	     WOW64_POINTER(PVOID) FlsBitmap;
+	     ULONG FlsBitmapBits[FLS_MAXIMUM_AVAILABLE / (sizeof(ULONG) * 8)];
+	     ULONG FlsHighIndex;
+	
+	     WOW64_POINTER(PVOID) WerRegistrationData;
+	     WOW64_POINTER(PVOID) WerShipAssertPtr;
+	     WOW64_POINTER(PVOID) pContextData;
+	     WOW64_POINTER(PVOID) pImageHeaderHash;
+	     union
+		     {
+		         ULONG TracingFlags;
+		         struct
+			         {
+			             ULONG HeapTracingEnabled : 1;
+			             ULONG CritSecTracingEnabled : 1;
+			             ULONG LibLoaderTracingEnabled : 1;
+			             ULONG SpareTracingBits : 29;
+			         };
+	     };
+	     ULONGLONG CsrServerReadOnlySharedMemoryBase;
+	 } PEB32, * PPEB32;
+
+
 
 typedef enum _SYSTEM_INFORMATION_CLASS
 {
@@ -170,7 +314,7 @@ typedef struct _RTL_PROCESS_MODULE_INFORMATION
 //} RTL_PROCESS_MODULES, * PRTL_PROCESS_MODULES;
 
 
-//for 64 bit process
+//for 64 bit process  this gets included because this instructure is buried under hidden modules
 typedef struct _PEB_LDR_DATA {
 	ULONG length;
 	BOOLEAN Initialized;
@@ -181,7 +325,12 @@ typedef struct _PEB_LDR_DATA {
 
 } PEB_LDR_DATA, * PPEB_LDR_DATA;
 
-//32 bit process
+//32 bit process already defined in nt
+//typedef struct _LIST_ENTRY32
+//{
+//	ULONG Flink, Blink;
+//} LIST_ENTRY32, * PLIST_ENTRY32;
+
 typedef struct _PEB_LDR_DATA32
 {
      ULONG Length;

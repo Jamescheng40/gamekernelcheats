@@ -149,42 +149,46 @@ ULONG get_module_base_x32(PEPROCESS proc, UNICODE_STRING module_name, HANDLE pid
 
 	//}
 //psuedo code for reading physical memory ends 
-	//BOOLEAN iswow64 = (PsGetProcessWow64Process(proc) != NULL) ? TRUE : FALSE;
+	
+	BOOLEAN iswow64 = (PsGetProcessWow64Process(proc) != NULL) ? TRUE : FALSE;
 
-	//if (iswow64 == FALSE)
-	//{
-	//	return 0;
-	//}
+	if (iswow64 == FALSE)
+	{
+		return 0;
+	}
 
-	//PVOID peb_address = PsGetProcessWow64Process(proc);
-	//KAPC_STATE state;
+	PPEB32 pPeb32 = (PPEB32)PsGetProcessWow64Process(proc);
+	KAPC_STATE state;
 
-	//KeStackAttachProcess(proc, &state);
+	KeStackAttachProcess(proc, &state);
 
-	//PPEB_LDR_DATA pLdr = (PPEB_LDR_DATA)pPeb->Ldr;
-	////ReadProcessMemory(pid, ldrdata.InLoadOrderModuleList.Flink,
-	////	(ULONG64)&currEntry, sizeof(LDR_DATA_TABLE_ENTRY32));
-	//if (!pLdr)
-	//{
-	//	KeUnstackDetachProcess(&state);
-	//	return NULL;
+	PPEB_LDR_DATA32 pLdr = (PPEB_LDR_DATA32)pPeb32->Ldr;
 
-	//}
+	if (!pLdr)
+	{
+		KeUnstackDetachProcess(&state);
+		return NULL;
 
-	//for (PLIST_ENTRY list = (PLIST_ENTRY)pLdr->ModuleListInitOrder.Flink; list != &pLdr->ModuleListLoadOrder; list = (PLIST_ENTRY)list->Flink)
-	//{
-	//	PLDR_DATA_TABLE_ENTRY pEntry = CONTAINING_RECORD(list, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
+	}
 
-	//	if (RtlCompareUnicodeString(&pEntry->BaseDllName, &module_name, TRUE) == NULL)
-	//	{
-	//		ULONG64 baseAddr = (ULONG64)pEntry->DllBase;
-	//		KeUnstackDetachProcess(&state);
-	//		return baseAddr;
+	for (PLIST_ENTRY32 list = (PLIST_ENTRY32)((PPEB_LDR_DATA32)pPeb32->Ldr)->InLoadOrderModuleList.Flink; list != &((PPEB_LDR_DATA32)pPeb32->Ldr)->InLoadOrderModuleList; list = (PLIST_ENTRY32)list->Flink)
+	{
+		PLDR_DATA_TABLE_ENTRY32 pEntry = CONTAINING_RECORD(list, LDR_DATA_TABLE_ENTRY32, InLoadOrderLinks);
+		
+		ULONG unicode32strmodule = pEntry->BaseDllName.Buffer;
+		//wchar_t* uni32str1 = reinterpret_cast<wchar_t*>(&unicode32strmodule);
 
-	//	}
-	//}
+		
+		//if (RtlCompareUnicodeString(&pEntry->BaseDllName, &module_name, TRUE) == NULL)
+		//{
+		//	ULONG64 baseAddr = (ULONG64)pEntry->DllBase;
+		//	KeUnstackDetachProcess(&state);
+		//	return baseAddr;
 
-	//KeUnstackDetachProcess(&state);
+		//}
+	}
+
+	KeUnstackDetachProcess(&state);
 	//return NULL;
 
 	return 0;
