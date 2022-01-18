@@ -60,3 +60,7 @@ int main(){
    
   return 0;
 }
+
+%wc print a wide char
+%ws print a wide char string
+%wZ print a UNICODE_STRING

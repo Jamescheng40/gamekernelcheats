@@ -5,7 +5,6 @@
 #include <string_view>
 #include <cstdint>
 #include <vector>
-
 typedef struct _JCH_Options_
 {
 	void* buffer_address;
@@ -17,22 +16,31 @@ typedef struct _JCH_Options_
 	BOOLEAN req_base;
 	void* output;
 	const char* module_name;
-	ULONG64 base_address;
+	PVOID base_address;
 	BOOLEAN IsProc64bit;
 	ULONG base_address32;
 }JCH_Options;
 
-uintptr_t base_address = 0;
+PVOID base_address = 0;
 std::uint32_t process_id = 0;
 
-template<typename ... Arg>
-uint64_t call_hook(const Arg ... args)
+template<typename ... A>
+uint64_t call_hook(const A ... args)
 {
-	void* hooked_func = GetProcAddress(LoadLibrary("win32u.dll"), "NtQueryCompositionSurfaceStatistics");
-	 
-	auto func = static_cast<uint64_t(_stdcall*)(Arg...)>(hooked_func);
+	//need to investigate how they found out this shit article posted on discord
+	LoadLibrary("user32.dll");
 
-	return func(args ...);
+	void* hooked_func = GetProcAddress(LoadLibrary("win32u.dll"), "NtDxgkGetTrackedWorkloadStatistics");
+	 
+	using tFunction = uint64_t(__stdcall*)(A ...);
+
+	const auto control = static_cast<tFunction>(hooked_func);
+
+	//auto func = static_cast<uint64_t(_stdcall*)(Arg...)>(hooked_func);
+
+	//const auto control = static_cast<tFunction>(hooked_func);
+
+	return control(args ...);
 
 }
 
@@ -76,10 +84,10 @@ std::uint32_t get_process_id(std::string_view process_name)
 	return NULL; 
 }
 
-static ULONG64 get_module_base_address(const char* module_name, BOOLEAN IsProc64Bit)
+static PVOID get_module_base_address(const char* module_name, BOOLEAN IsProc64Bit)
 {
 	JCH_Options instruction = { 0 };
-	instruction.pid = process_id;
+	instruction.pid = get_process_id(module_name);
 	instruction.req_base = TRUE;
 	instruction.read = FALSE;
 	instruction.write = FALSE;
@@ -87,7 +95,7 @@ static ULONG64 get_module_base_address(const char* module_name, BOOLEAN IsProc64
 	instruction.IsProc64bit = IsProc64Bit;
 	call_hook(&instruction);
 
-	ULONG64 base = NULL;
+	PVOID base = NULL;
 	base = instruction.base_address;
 	return base;
 
@@ -135,8 +143,8 @@ bool write(UINT_PTR write_address, const S& value)
 
 int main()
 {
-	base_address = get_module_base_address("client.dll", TRUE);
-
+	base_address = get_module_base_address("notepad.exe", TRUE);
+	PIMAGE_DOS_HEADER dosHeader = (PIMAGE_DOS_HEADER)base_address;
 	if (!base_address)
 	{
 

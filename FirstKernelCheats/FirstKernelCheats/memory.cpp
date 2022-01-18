@@ -41,14 +41,51 @@ PVOID get_system_module_base(const char* module_name)
 	return module_base;
 }
 
-PVOID get_system_module_export(const char* module_name, LPCSTR routine_name)
+//PVOID get_system_module_export(const char* module_name, LPCSTR routine_name)
+//{
+//	PVOID lpModule = get_system_module_base(module_name);
+//
+//	if (!lpModule)
+//		return NULL;
+//
+//	return RtlFindExportedRoutineByName(lpModule, routine_name);
+//}
+
+PVOID get_system_routine_address(PCWSTR routine_name)
 {
-	PVOID lpModule = get_system_module_base(module_name);
+	UNICODE_STRING name;
+	RtlInitUnicodeString(&name, routine_name);
+	//get system routine address get the executable or dll's address; equivalent to usermode getprocaddress
+	return MmGetSystemRoutineAddress(&name);
 
-	if (!lpModule)
+}
+
+PVOID get_system_module_export(PCWSTR module_name, LPCSTR routine_name)
+{
+	//PVOID lpModule = get_system_module_base(module_name);
+	PLIST_ENTRY module_list = reinterpret_cast<PLIST_ENTRY>(get_system_routine_address(L"PsLoadedModuleList"));
+
+	if (!module_list)
+	{
+		DbgPrintEx(0, 0, "[JCcheats] get_system_module_export module list is NULL \n");
 		return NULL;
+	}
+	for (PLIST_ENTRY link = module_list; link != module_list->Blink; link = link->Flink)
+	{
+		LDR_DATA_TABLE_ENTRY* entry = CONTAINING_RECORD(link,LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
+		DbgPrintEx(0, 0, "[JCcheats] entering the loop in the get_system_module_export module \n");
+		UNICODE_STRING name;
+		RtlInitUnicodeString(&name, module_name);
+		if (RtlEqualUnicodeString(&entry->BaseDllName, &name, TRUE))
+		{
+			DbgPrintEx(0, 0, "[JCcheats] entry is found and outputing the dllBase next \n");
+			return (entry->DllBase) ? RtlFindExportedRoutineByName(entry->DllBase, routine_name) : NULL;
+		}
 
-	return RtlFindExportedRoutineByName(lpModule, routine_name);
+	}
+	DbgPrintEx(0, 0, "[JCcheats] entry is not found and returning NULL \n");
+	return NULL;
+
 }
 
 bool write_memory(void* address, void* buffer, size_t size)
@@ -194,43 +231,70 @@ ULONG get_module_base_x32(PEPROCESS proc, UNICODE_STRING module_name, HANDLE pid
 	return 0;
 }
 
-ULONG64 get_module_base_x64(PEPROCESS proc, UNICODE_STRING module_name)
+PVOID get_module_base_x64(PEPROCESS proc, UNICODE_STRING module_name)
 {
 
 	PPEB pPeb = PsGetProcessPeb(proc);
 
+
 	if (!pPeb)
 	{
+		DbgPrintEx(0, 0, "[JCcheats]PPEB pPeb = PsGetProcessPeb returned null  \n");
 		return NULL;
 	}
 
 	KAPC_STATE state;
 
+	DbgPrintEx(0, 0, "[JCcheats]inside get module x64 and .exe base is %p  \n", pPeb->lpImageBaseAddress);
 	KeStackAttachProcess(proc, &state);
 
-	PPEB_LDR_DATA pLdr = (PPEB_LDR_DATA)pPeb->Ldr;
+	PPEB_LDR_DATA pLdr = (PPEB_LDR_DATA)pPeb->pLdr;
 	//ReadProcessMemory(pid, ldrdata.InLoadOrderModuleList.Flink,
 	//	(ULONG64)&currEntry, sizeof(LDR_DATA_TABLE_ENTRY32));
+	DbgPrintEx(0, 0, "[JCcheats]inside get module x64 and module name is %wZ  \n", &module_name);
 	if (!pLdr)
 	{
+		DbgPrintEx(0, 0, "[JCcheats]PPEB_LDR_DATA pLdr is null \n");
 		KeUnstackDetachProcess(&state);
 		return NULL;
 
 	}
-
-	for (PLIST_ENTRY list = (PLIST_ENTRY)pLdr->ModuleListInitOrder.Flink; list != &pLdr->ModuleListLoadOrder; list = (PLIST_ENTRY)list->Flink)
-	{
-		PLDR_DATA_TABLE_ENTRY pEntry = CONTAINING_RECORD(list, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
-
-		if (RtlCompareUnicodeString(&pEntry->BaseDllName, &module_name, TRUE) == NULL)
+	int i = 0;
+		for (PLIST_ENTRY list = (PLIST_ENTRY)pLdr->InMemoryOrderModuleList.Flink; list != &pLdr->InMemoryOrderModuleList; list = (PLIST_ENTRY)list->Flink)
 		{
-			ULONG64 baseAddr = (ULONG64)pEntry->DllBase;
-			KeUnstackDetachProcess(&state);
-			return baseAddr;
+			if (i >= 30)
+			{
+				break;
+			}
+			PLDR_DATA_TABLE_ENTRY pEntry = CONTAINING_RECORD(list, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
+			DbgPrintEx(0, 0, "[JCcheats]inside get module x64 and this particular base dll name is %wZ  \n", &pEntry->BaseDllName);
 
+			DbgPrintEx(0, 0, "[JCcheats]this particular instance address is void* is  %p  \n", (void*)(pEntry->DllBase));
+
+			DbgPrintEx(0, 0, "[JCcheats]this full dll name is %wZ  \n", &pEntry->FullDllName);
+
+			DbgPrintEx(0,0, "[JCcheats]this base dll name in ulong64 is %I64u	 \n", (ULONG64)pEntry->DllBase);
+
+			DbgPrintEx(0, 0, "[JCcheats]this entry point in ulong64 is %I64u	 \n", (ULONG64)pEntry->EntryPoint);
+
+			DbgPrintEx(0, 0, "[JCcheats]this sizeofimage in ulong64 is %I64u	 \n", (ULONG64)pEntry->SizeOfImage);
+
+			//PVOID tmpadd = MmGetSystemRoutineAddress(&pEntry->);
+			//DbgPrintEx(0, 0, "[JCcheats]this base address of this particular dll/exe is %p	 \n", (void *)tmpadd);
+
+			if (RtlCompareUnicodeString(&(pEntry->FullDllName),&module_name, TRUE) == NULL)
+			{
+				DbgPrintEx(0, 0, "[JCcheats]dll found inside PLIST_ENTRY \n");
+				PVOID baseAddr = (PVOID)pEntry->DllBase;
+				KeUnstackDetachProcess(&state);
+				return baseAddr;
+
+			}
+			i++;
 		}
-	}
 
+
+	DbgPrintEx(0, 0, "[JCcheats]Rip no process found\n");
 	KeUnstackDetachProcess(&state);
 	return NULL;
 
@@ -242,7 +306,7 @@ bool read_kernel_memory(HANDLE pid, uintptr_t address, void* buffer, SIZE_T size
 	if (!address || !buffer || !size)
 		return false;
 
-
+	
 	SIZE_T bytes = 0;
 	NTSTATUS status = STATUS_SUCCESS;
 	PEPROCESS process;
