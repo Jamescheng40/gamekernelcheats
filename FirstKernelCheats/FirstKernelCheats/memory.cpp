@@ -245,9 +245,9 @@ PVOID get_module_base_x64(PEPROCESS proc, UNICODE_STRING module_name)
 
 	KAPC_STATE state;
 
-	DbgPrintEx(0, 0, "[JCcheats]inside get module x64 and .exe base is %p  \n", pPeb->lpImageBaseAddress);
-	KeStackAttachProcess(proc, &state);
 
+	KeStackAttachProcess(proc, &state);
+	DbgPrintEx(0, 0, "[JCcheats]inside get module x64 and .exe base is %p  \n", (void *)pPeb->lpImageBaseAddress);
 	PPEB_LDR_DATA pLdr = (PPEB_LDR_DATA)pPeb->pLdr;
 	//ReadProcessMemory(pid, ldrdata.InLoadOrderModuleList.Flink,
 	//	(ULONG64)&currEntry, sizeof(LDR_DATA_TABLE_ENTRY32));
@@ -266,7 +266,7 @@ PVOID get_module_base_x64(PEPROCESS proc, UNICODE_STRING module_name)
 			{
 				break;
 			}
-			PLDR_DATA_TABLE_ENTRY pEntry = CONTAINING_RECORD(list, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
+			PLDR_DATA_TABLE_ENTRY pEntry = CONTAINING_RECORD(list, LDR_DATA_TABLE_ENTRY, InMemoryOrderModuleList);
 			DbgPrintEx(0, 0, "[JCcheats]inside get module x64 and this particular base dll name is %wZ  \n", &pEntry->BaseDllName);
 
 			DbgPrintEx(0, 0, "[JCcheats]this particular instance address is void* is  %p  \n", (void*)(pEntry->DllBase));
@@ -282,7 +282,7 @@ PVOID get_module_base_x64(PEPROCESS proc, UNICODE_STRING module_name)
 			//PVOID tmpadd = MmGetSystemRoutineAddress(&pEntry->);
 			//DbgPrintEx(0, 0, "[JCcheats]this base address of this particular dll/exe is %p	 \n", (void *)tmpadd);
 
-			if (RtlCompareUnicodeString(&(pEntry->FullDllName),&module_name, TRUE) == NULL)
+			if (RtlCompareUnicodeString(&(pEntry->BaseDllName),&module_name, TRUE) == NULL)
 			{
 				DbgPrintEx(0, 0, "[JCcheats]dll found inside PLIST_ENTRY \n");
 				PVOID baseAddr = (PVOID)pEntry->DllBase;
