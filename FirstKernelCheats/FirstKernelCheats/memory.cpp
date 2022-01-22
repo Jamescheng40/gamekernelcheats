@@ -191,6 +191,7 @@ ULONG get_module_base_x32(PEPROCESS proc, UNICODE_STRING module_name, HANDLE pid
 
 	if (iswow64 == FALSE)
 	{
+		DbgPrintEx(0, 0, "[JCcheats][x32] not a x32 bit process  \n");
 		return 0;
 	}
 
@@ -203,16 +204,36 @@ ULONG get_module_base_x32(PEPROCESS proc, UNICODE_STRING module_name, HANDLE pid
 
 	if (!pLdr)
 	{
+		DbgPrintEx(0, 0, "[JCcheats][x32] PPEB_LDR_DATA pLdr is null \n");
 		KeUnstackDetachProcess(&state);
 		return NULL;
 
 	}
-
+	int i = 0;
 	for (PLIST_ENTRY32 list = (PLIST_ENTRY32)((PPEB_LDR_DATA32)pPeb32->Ldr)->InLoadOrderModuleList.Flink; list != &((PPEB_LDR_DATA32)pPeb32->Ldr)->InLoadOrderModuleList; list = (PLIST_ENTRY32)list->Flink)
 	{
+		if (i >= 500)
+		{
+			break;
+		}
 		PLDR_DATA_TABLE_ENTRY32 pEntry = CONTAINING_RECORD(list, LDR_DATA_TABLE_ENTRY32, InLoadOrderLinks);
-		
-		ULONG unicode32strmodule = pEntry->BaseDllName.Buffer;
+
+		DbgPrintEx(0, 0, "[[JCcheats][x32]]inside get module x32 and this particular base dll name is %wS  \n", (PWCHAR)pEntry->BaseDllName.Buffer);
+
+		//DbgPrintEx(0, 0, "[[JCcheats][x32]]this particular instance address is void* is  %p  \n", (void*)(pEntry->DllBase));
+
+		//DbgPrintEx(0, 0, "[[JCcheats][x32]]this full dll name is %wZ  \n", &pEntry->FullDllName);
+
+		//DbgPrintEx(0, 0, "[[JCcheats][x32]]this base dll name in ulong64 is %I32u	 \n", (ULONG32)pEntry->DllBase);
+
+		//DbgPrintEx(0, 0, "[[JCcheats][x32]]this entry point in ulong64 is %I32u	 \n", (ULONG32)pEntry->EntryPoint);
+
+		//DbgPrintEx(0, 0, "[[JCcheats][x32]]this sizeofimage in ulong64 is %I32u	 \n", (ULONG32)pEntry->SizeOfImage);
+
+
+
+		i++;
+		//ULONG unicode32strmodule = pEntry->BaseDllName.Buffer;
 		//wchar_t* uni32str1 = reinterpret_cast<wchar_t*>(&unicode32strmodule);
 
 		
@@ -259,6 +280,7 @@ PVOID get_module_base_x64(PEPROCESS proc, UNICODE_STRING module_name)
 		return NULL;
 
 	}
+	PVOID baseAddr = NULL;
 	int i = 0;
 		for (PLIST_ENTRY list = (PLIST_ENTRY)pLdr->InMemoryOrderModuleList.Flink; list != &pLdr->InMemoryOrderModuleList; list = (PLIST_ENTRY)list->Flink)
 		{
@@ -285,18 +307,18 @@ PVOID get_module_base_x64(PEPROCESS proc, UNICODE_STRING module_name)
 			if (RtlCompareUnicodeString(&(pEntry->BaseDllName),&module_name, TRUE) == NULL)
 			{
 				DbgPrintEx(0, 0, "[JCcheats]dll found inside PLIST_ENTRY \n");
-				PVOID baseAddr = (PVOID)pEntry->DllBase;
-				KeUnstackDetachProcess(&state);
-				return baseAddr;
+				baseAddr = (PVOID)pEntry->DllBase;
+
 
 			}
 			i++;
 		}
 
-
-	DbgPrintEx(0, 0, "[JCcheats]Rip no process found\n");
-	KeUnstackDetachProcess(&state);
-	return NULL;
+		KeUnstackDetachProcess(&state);
+		return baseAddr;
+	//DbgPrintEx(0, 0, "[JCcheats]Rip no process found\n");
+	//KeUnstackDetachProcess(&state);
+	//return NULL;
 
 
 }

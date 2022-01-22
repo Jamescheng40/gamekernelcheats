@@ -143,7 +143,7 @@ bool write(UINT_PTR write_address, const S& value)
 
 int main()
 {
-	base_address = get_module_base_address("notepad.exe", TRUE);
+	base_address = get_module_base_address("csgo.exe", FALSE);
 	PIMAGE_DOS_HEADER dosHeader = (PIMAGE_DOS_HEADER)base_address;
 	if (!base_address)
 	{
