@@ -1,7 +1,7 @@
 #pragma once
 #include "WInDefRef.h"
 
-ULONG get_module_base_x32(PEPROCESS proc, UNICODE_STRING module_name, HANDLE pid);
+PVOID get_module_base_x32(PEPROCESS proc, UNICODE_STRING module_name, HANDLE pid);
 PVOID get_system_module_base(const char* module_name);
 PVOID get_system_module_export(PCWSTR module_name, LPCSTR routine_name);
 bool write_memory(void* address, void* buffer, size_t size);
@@ -24,5 +24,4 @@ typedef struct _JCH_Options_
 	const char* module_name;
 	PVOID base_address;
 	BOOLEAN IsProc64bit;
-	ULONG base_address32;
 }JCH_Options;

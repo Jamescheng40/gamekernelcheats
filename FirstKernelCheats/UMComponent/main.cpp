@@ -18,7 +18,6 @@ typedef struct _JCH_Options_
 	const char* module_name;
 	PVOID base_address;
 	BOOLEAN IsProc64bit;
-	ULONG base_address32;
 }JCH_Options;
 
 PVOID base_address = 0;
@@ -88,6 +87,7 @@ static PVOID get_module_base_address(const char* module_name, BOOLEAN IsProc64Bi
 {
 	JCH_Options instruction = { 0 };
 	instruction.pid = get_process_id(module_name);
+	process_id = instruction.pid;
 	instruction.req_base = TRUE;
 	instruction.read = FALSE;
 	instruction.write = FALSE;
@@ -143,8 +143,12 @@ bool write(UINT_PTR write_address, const S& value)
 
 int main()
 {
+	DWORD dwClientBase = 0;
 	base_address = get_module_base_address("csgo.exe", FALSE);
-	PIMAGE_DOS_HEADER dosHeader = (PIMAGE_DOS_HEADER)base_address;
+	dwClientBase = reinterpret_cast<DWORD>(base_address);
+	/*PIMAGE_DOS_HEADER dosHeader = (PIMAGE_DOS_HEADER)base_address;*/
+	PVOID value = Read<PVOID>((UINT_PTR)dwClientBase + 0x00000005);
+	//ULONG32* hi = (ULONG32*)value;
 	if (!base_address)
 	{
 
@@ -153,6 +157,7 @@ int main()
 	else
 	{
 		printf("Yes");
+
 	}
 
 	Sleep(500);

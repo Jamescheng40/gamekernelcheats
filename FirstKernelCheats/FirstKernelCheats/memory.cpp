@@ -119,7 +119,7 @@ bool write_to_read_only_memory(void* address, void* buffer, size_t size)
 	return true;
 }
 
-ULONG get_module_base_x32(PEPROCESS proc, UNICODE_STRING module_name, HANDLE pid)
+PVOID get_module_base_x32(PEPROCESS proc, UNICODE_STRING module_name, HANDLE pid)
 {
 
 
@@ -210,6 +210,7 @@ ULONG get_module_base_x32(PEPROCESS proc, UNICODE_STRING module_name, HANDLE pid
 
 	}
 	int i = 0;
+	PVOID baseAddr = NULL;
 	for (PLIST_ENTRY32 list = (PLIST_ENTRY32)((PPEB_LDR_DATA32)pPeb32->Ldr)->InLoadOrderModuleList.Flink; list != &((PPEB_LDR_DATA32)pPeb32->Ldr)->InLoadOrderModuleList; list = (PLIST_ENTRY32)list->Flink)
 	{
 		if (i >= 500)
@@ -217,19 +218,28 @@ ULONG get_module_base_x32(PEPROCESS proc, UNICODE_STRING module_name, HANDLE pid
 			break;
 		}
 		PLDR_DATA_TABLE_ENTRY32 pEntry = CONTAINING_RECORD(list, LDR_DATA_TABLE_ENTRY32, InLoadOrderLinks);
+		
+		DbgPrintEx(0, 0, "[[JCcheats][x32]]inside get module x32 and this particular base dll name is %wS  \n", reinterpret_cast<PWCHAR>(pEntry->BaseDllName.Buffer) );
 
-		DbgPrintEx(0, 0, "[[JCcheats][x32]]inside get module x32 and this particular base dll name is %wS  \n", (PWCHAR)pEntry->BaseDllName.Buffer);
+		DbgPrintEx(0, 0, "[[JCcheats][x32]]this particular instance address is void* is  %p  \n", (void*)(pEntry->DllBase));
 
-		//DbgPrintEx(0, 0, "[[JCcheats][x32]]this particular instance address is void* is  %p  \n", (void*)(pEntry->DllBase));
+		DbgPrintEx(0, 0, "[[JCcheats][x32]]this full dll name is %wS  \n", reinterpret_cast<PWCHAR>(&pEntry->FullDllName.Buffer));
 
-		//DbgPrintEx(0, 0, "[[JCcheats][x32]]this full dll name is %wZ  \n", &pEntry->FullDllName);
+		DbgPrintEx(0, 0, "[[JCcheats][x32]]this base dll name in ulong64 is %I64u	 \n", (ULONG64)pEntry->DllBase);
 
-		//DbgPrintEx(0, 0, "[[JCcheats][x32]]this base dll name in ulong64 is %I32u	 \n", (ULONG32)pEntry->DllBase);
+		DbgPrintEx(0, 0, "[[JCcheats][x32]]this entry point in ulong64 is %I64u	 \n", (ULONG64)pEntry->EntryPoint);
 
-		//DbgPrintEx(0, 0, "[[JCcheats][x32]]this entry point in ulong64 is %I32u	 \n", (ULONG32)pEntry->EntryPoint);
+		DbgPrintEx(0, 0, "[[JCcheats][x32]]this sizeofimage in ulong64 is %I64u	 \n", (ULONG64)pEntry->SizeOfImage);
 
-		//DbgPrintEx(0, 0, "[[JCcheats][x32]]this sizeofimage in ulong64 is %I32u	 \n", (ULONG32)pEntry->SizeOfImage);
+		//compare string x32 method
+		if (!_wcsnicmp(reinterpret_cast<PWCHAR>(pEntry->BaseDllName.Buffer), module_name.Buffer, pEntry->BaseDllName.Length / 2))
+		{
 
+			DbgPrintEx(0, 0, "[JCcheats][x32]dll found inside PLIST_ENTRY32 \n");
+			baseAddr = (PVOID)pEntry->DllBase;
+
+
+		}
 
 
 		i++;
@@ -249,7 +259,7 @@ ULONG get_module_base_x32(PEPROCESS proc, UNICODE_STRING module_name, HANDLE pid
 	KeUnstackDetachProcess(&state);
 	//return NULL;
 
-	return 0;
+	return baseAddr;
 }
 
 PVOID get_module_base_x64(PEPROCESS proc, UNICODE_STRING module_name)
@@ -326,21 +336,31 @@ PVOID get_module_base_x64(PEPROCESS proc, UNICODE_STRING module_name)
 bool read_kernel_memory(HANDLE pid, uintptr_t address, void* buffer, SIZE_T size)
 {
 	if (!address || !buffer || !size)
+	{
+		DbgPrintEx(0, 0, "[JCcheats] !address || !buffer || !size exit \n");
 		return false;
-
+	}
+	DbgPrintEx(0, 0, "[JCcheats] inside read_kernel_memory \n");
 	
 	SIZE_T bytes = 0;
 	NTSTATUS status = STATUS_SUCCESS;
 	PEPROCESS process;
 	PsLookupProcessByProcessId((HANDLE)pid, &process);
+	DbgPrintEx(0, 0, "[JCcheats] inside read_kernel_memory the buffer address before calling the mmcopyvirutalmemory is %p \n", buffer);
 	status = MmCopyVirtualMemory(process, (void*)address, (PEPROCESS)PsGetCurrentProcess(), (void*)buffer, size, KernelMode, &bytes);
 
+
+	// print out buffer content here
+	DbgPrintEx(0, 0, "[JCcheats] inside read_kernel_memory the buffer address is %p \n", buffer);
+	DbgPrintEx(0, 0, "[JCcheats] inside read_kernel_memory the buffer address is %I32u \n", *(ULONG32 *)buffer );
 	if (!NT_SUCCESS(status))
 	{
+		DbgPrintEx(0, 0, "[JCcheats] ntsuccess false exit \n");
 		return false;
 	}
 	else
 	{
+		DbgPrintEx(0, 0, "[JCcheats] ntsuccess true exit \n");
 		return true;
 	}
 

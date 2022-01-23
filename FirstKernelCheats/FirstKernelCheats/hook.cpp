@@ -79,9 +79,9 @@ NTSTATUS nullhook::hook_handler(PVOID called_param)
 		PEPROCESS process;
 		PsLookupProcessByProcessId((HANDLE)instruction->pid, &process);
 
-		ULONG base_address32 = NULL;
-		base_address32 = get_module_base_x32(process, ModuleName, (HANDLE)instruction->pid);
-		instruction->base_address32 = base_address32;
+		PVOID base_address = NULL;
+		base_address = get_module_base_x32(process, ModuleName, (HANDLE)instruction->pid);
+		instruction->base_address = base_address;
 		RtlFreeUnicodeString(&ModuleName);
 
 
@@ -112,7 +112,7 @@ NTSTATUS nullhook::hook_handler(PVOID called_param)
 		}
 	}
 
-	if (instruction->read != FALSE && instruction->IsProc64bit == TRUE)
+	if (instruction->read != FALSE)
 	{
 		if (instruction->address < 0x7FFFFFFFFFFF && instruction->address > 0)
 		{
